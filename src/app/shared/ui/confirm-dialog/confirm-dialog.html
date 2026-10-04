@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content class="cs-confirm-dialog">
+  <p class="cs-confirm-dialog__message">{{ data.message }}</p>
+
+  @if (impacts().length > 0) {
+    <ul class="cs-confirm-dialog__impacts">
+      @for (impact of impacts(); track $index) {
+        <li class="cs-confirm-dialog__impact">
+          <span class="cs-confirm-dialog__impact-label">{{ impact.label }}</span>
+          @if (impact.detail) {
+            <span class="cs-confirm-dialog__impact-detail">{{ impact.detail }}</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (data.requireAcknowledgement) {
+    <mat-checkbox
+      class="cs-confirm-dialog__acknowledgement"
+      [checked]="acknowledged()"
+      (change)="acknowledged.set($event.checked)"
+    >
+      I understand this cannot be undone
+    </mat-checkbox>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton="text" type="button" (click)="cancel()">{{ cancelLabel() }}</button>
+  <button
+    matButton="filled"
+    type="button"
+    class="cs-confirm-dialog__confirm"
+    [class.cs-confirm-dialog__confirm--danger]="danger()"
+    [disabled]="!canConfirm()"
+    (click)="confirm()"
+  >
+    {{ confirmLabel() }}
+  </button>
+</mat-dialog-actions>

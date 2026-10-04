@@ -1,0 +1,152 @@
+<div class="cs-page">
+  <cs-page-header
+    heading="Settings"
+    subtitle="Connect NovelAI and choose the models the studio defaults to."
+  />
+
+  <cs-novelai-notice />
+
+  @if (busy()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (error()) {
+    <p class="cs-banner cs-banner--error">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      {{ error() }}
+    </p>
+  }
+
+  @if (notice()) {
+    <p class="cs-banner cs-banner--ok">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      {{ notice() }}
+    </p>
+  }
+
+  <cs-section-card heading="NovelAI account" icon="key">
+    @if (loadingConnection()) {
+      <p class="cs-muted">Loading…</p>
+    } @else if (connection()?.connected) {
+      <div class="cs-connection">
+        <div class="cs-connection__status">
+          <cs-status-chip
+            [label]="'Tier · ' + tierLabel(connection()!.tier)"
+            tone="info"
+            icon="workspace_premium"
+          />
+          <cs-status-chip
+            [label]="connection()!.subscriptionActive ? 'Subscription active' : 'No active subscription'"
+            [tone]="connection()!.subscriptionActive ? 'success' : 'warning'"
+            icon="verified"
+          />
+        </div>
+
+        <dl class="cs-facts">
+          <dt>Token</dt>
+          <dd>•••• {{ connection()!.tokenLast4 }}</dd>
+          <dt>Anlas</dt>
+          <dd>
+            @if (connection()!.anlasBalance !== null) {
+              {{ connection()!.anlasBalance | number }}
+            } @else {
+              <span class="cs-muted">not reported</span>
+            }
+          </dd>
+          <dt>Checked</dt>
+          <dd>
+            @if (connection()!.checkedAt) {
+              {{ connection()!.checkedAt | date: 'medium' }}
+            } @else {
+              <span class="cs-muted">never</span>
+            }
+          </dd>
+        </dl>
+
+        <div class="cs-connection__actions">
+          <button matButton="outlined" type="button" (click)="refresh()" [disabled]="busy()">
+            <mat-icon>refresh</mat-icon>
+            Refresh
+          </button>
+          <button matButton="text" type="button" (click)="disconnect()" [disabled]="busy()">
+            <mat-icon>link_off</mat-icon>
+            Disconnect
+          </button>
+        </div>
+      </div>
+    } @else {
+      <p class="cs-muted">
+        Paste a NovelAI <strong>persistent API token</strong> (starts with <code>pst-</code>).
+        It is validated immediately, encrypted with the server's Data Protection keyring,
+        and never sent back to the browser.
+      </p>
+
+      <div class="cs-token-row">
+        <mat-form-field appearance="outline" class="cs-token-row__field">
+          <mat-label>Persistent API token</mat-label>
+          <input
+            matInput
+            [type]="showToken() ? 'text' : 'password'"
+            [value]="tokenInput()"
+            (input)="tokenInput.set($any($event.target).value)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </mat-form-field>
+
+        <button
+          matIconButton
+          type="button"
+          [attr.aria-label]="showToken() ? 'Hide token' : 'Show token'"
+          (click)="showToken.set(!showToken())"
+        >
+          <mat-icon>{{ showToken() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+
+        <button matButton="filled" type="button" (click)="connect()" [disabled]="busy()">
+          Connect
+        </button>
+      </div>
+
+      <p class="cs-muted">
+        Generate one in your NovelAI account settings under <em>Persistent API Token</em>.
+      </p>
+    }
+  </cs-section-card>
+
+  <cs-section-card heading="Model defaults" icon="tune">
+    <p class="cs-muted">
+      Only models available on your current tier are listed. Context sizes adapt to your tier.
+    </p>
+
+    <form [formGroup]="preferenceForm" class="cs-preferences">
+      <mat-form-field appearance="outline">
+        <mat-label>Text model</mat-label>
+        <mat-select formControlName="preferredTextModelId">
+          <mat-option [value]="null">Use the registry default</mat-option>
+          @for (model of eligibleTextModels(); track model.id) {
+            <mat-option [value]="model.id">{{ model.displayName }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>{{ contextHint(preferenceForm.controls.preferredTextModelId.value) }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Image model</mat-label>
+        <mat-select formControlName="preferredImageModelId">
+          <mat-option [value]="null">Use the registry default</mat-option>
+          @for (model of eligibleImageModels(); track model.id) {
+            <mat-option [value]="model.id">{{ model.displayName }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint
+          >{{ contextHint(preferenceForm.controls.preferredImageModelId.value) }}</mat-hint
+        >
+      </mat-form-field>
+
+      <button matButton="filled" type="button" (click)="savePreferences()" [disabled]="busy()">
+        Save defaults
+      </button>
+    </form>
+  </cs-section-card>
+</div>

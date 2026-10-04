@@ -1,0 +1,125 @@
+.cs-muted {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin: 0;
+}
+
+.cs-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cs-banner {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--cs-radius-sm);
+  font: var(--mat-sys-body-small);
+}
+
+.cs-banner--error {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.cs-banner--ok {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-lore {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: var(--cs-gutter);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .cs-lore {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cs-lore__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cs-lore__item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--cs-radius-sm);
+  padding-right: 4px;
+
+  &--active {
+    border-color: var(--mat-sys-primary);
+    background-color: var(--mat-sys-surface-container);
+  }
+
+  &--disabled {
+    opacity: 0.55;
+  }
+}
+
+.cs-lore__select {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: var(--mat-sys-body-medium);
+}
+
+.cs-lore__name {
+  font: var(--mat-sys-title-small);
+}
+
+.cs-lore__keys {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cs-key {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font: var(--mat-sys-label-small);
+}
+
+.cs-lore__form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cs-lore__row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 180px;
+  }
+}
+
+.cs-lore__toggles {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 4px 0 12px;
+}

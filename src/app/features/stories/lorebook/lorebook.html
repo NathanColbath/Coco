@@ -1,0 +1,148 @@
+<div class="cs-page">
+  <cs-page-header
+    heading="Lorebook"
+    subtitle="Entries are injected when their keys appear in recent story text, or always if you say so."
+  >
+    <div pageActions class="cs-actions">
+      <a matButton="outlined" [routerLink]="['/stories', storyId()]">
+        <mat-icon>arrow_back</mat-icon>
+        Back to story
+      </a>
+      <button matButton="filled" type="button" (click)="startNew()">
+        <mat-icon>add</mat-icon>
+        New entry
+      </button>
+    </div>
+  </cs-page-header>
+
+  @if (busy()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (error()) {
+    <p class="cs-banner cs-banner--error">{{ error() }}</p>
+  }
+  @if (notice() && !error()) {
+    <p class="cs-banner cs-banner--ok">{{ notice() }}</p>
+  }
+
+  <div class="cs-lore">
+    <cs-section-card heading="Entries" icon="list">
+      @if (entries.isLoading()) {
+        <p class="cs-muted">Loading…</p>
+      } @else if ((entries.value() ?? []).length === 0) {
+        <cs-empty-state
+          icon="menu_book"
+          heading="No entries yet"
+          message="Add characters, places and rules the model should remember when they come up."
+        />
+      } @else {
+        <ul class="cs-lore__list">
+          @for (entry of entries.value(); track entry.id) {
+            <li
+              class="cs-lore__item"
+              [class.cs-lore__item--active]="selectedId() === entry.id"
+              [class.cs-lore__item--disabled]="!entry.enabled"
+            >
+              <button type="button" class="cs-lore__select" (click)="select(entry)">
+                <span class="cs-lore__name">{{ entry.displayName }}</span>
+                <span class="cs-lore__keys">
+                  @for (key of entry.keys; track key) {
+                    <span class="cs-key">{{ key }}</span>
+                  }
+                  @if (entry.alwaysOn) {
+                    <cs-status-chip label="always on" tone="info" />
+                  }
+                </span>
+                <span class="cs-muted">
+                  order {{ entry.insertionOrder }} · position {{ entry.insertionPosition }}
+                </span>
+              </button>
+              <button
+                matIconButton
+                type="button"
+                matTooltip="Delete entry"
+                (click)="remove(entry)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </cs-section-card>
+
+    <cs-section-card [heading]="selectedId() ? 'Edit entry' : 'New entry'" icon="edit">
+      <form [formGroup]="form" class="cs-lore__form">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="displayName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Activation keys</mat-label>
+          <textarea matInput rows="3" formControlName="keys" placeholder="Ana&#10;the gardener"></textarea>
+          <mat-hint>One per line. Matching is case-insensitive and word-aware.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Content</mat-label>
+          <textarea matInput rows="6" formControlName="content"></textarea>
+        </mat-form-field>
+
+        <div class="cs-lore__row">
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <input matInput formControlName="category" placeholder="Character" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Insertion order</mat-label>
+            <input matInput type="number" formControlName="insertionOrder" />
+            <mat-hint>Higher reserves space first.</mat-hint>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Insertion position</mat-label>
+            <input matInput type="number" formControlName="insertionPosition" />
+            <mat-hint>0 = top, -1 = very bottom.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="cs-lore__row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prefix</mat-label>
+            <input matInput formControlName="prefix" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Suffix</mat-label>
+            <input matInput formControlName="suffix" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Reserved tokens</mat-label>
+            <input matInput type="number" formControlName="reservedTokens" />
+          </mat-form-field>
+        </div>
+
+        <div class="cs-lore__row">
+          <mat-form-field appearance="outline">
+            <mat-label>Trim direction</mat-label>
+            <mat-select formControlName="trimDirection">
+              <mat-option value="DoNotTrim">Do not trim (skip if it doesn't fit)</mat-option>
+              <mat-option value="TrimTop">Trim from the top</mat-option>
+              <mat-option value="TrimBottom">Trim from the bottom</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="cs-lore__toggles">
+          <mat-checkbox formControlName="enabled">Enabled</mat-checkbox>
+          <mat-checkbox formControlName="alwaysOn">Always in context</mat-checkbox>
+          <mat-checkbox formControlName="keyRelative">Insert after the matched key</mat-checkbox>
+        </div>
+
+        <button matButton="filled" type="button" (click)="save()" [disabled]="busy()">
+          {{ selectedId() ? 'Save entry' : 'Create entry' }}
+        </button>
+      </form>
+    </cs-section-card>
+  </div>
+</div>

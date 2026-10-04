@@ -1,0 +1,78 @@
+<mat-toolbar class="cs-toolbar">
+  <button
+    matIconButton
+    type="button"
+    aria-label="Toggle navigation"
+    (click)="toggleSidenav()"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <a class="cs-brand" routerLink="/dashboard">
+    <mat-icon aria-hidden="true">auto_stories</mat-icon>
+    <span>Comic Studio</span>
+  </a>
+
+  <span class="cs-spacer"></span>
+
+  <cs-status-chip
+    class="cs-toolbar__tier"
+    [label]="novelAiChip().label"
+    [tone]="novelAiChip().tone"
+    [icon]="novelAiChip().icon"
+  />
+
+  <button
+    matIconButton
+    type="button"
+    [matTooltip]="theme.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+    (click)="theme.toggle()"
+  >
+    <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
+
+  <button matIconButton type="button" [matMenuTriggerFor]="userMenu" aria-label="Account">
+    <span class="cs-avatar">{{ initial() }}</span>
+  </button>
+
+  <mat-menu #userMenu="matMenu">
+    <div class="cs-user-menu__header">
+      <strong>{{ auth.user()?.displayName }}</strong>
+      <span>{{ auth.user()?.email }}</span>
+    </div>
+    <mat-divider />
+    <button mat-menu-item type="button" routerLink="/settings">
+      <mat-icon>settings</mat-icon>
+      <span>Settings</span>
+    </button>
+    <button mat-menu-item type="button" (click)="signOut()">
+      <mat-icon>logout</mat-icon>
+      <span>Sign out</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<mat-sidenav-container class="cs-shell" [class.cs-shell--collapsed]="collapsed()">
+  <mat-sidenav mode="side" [opened]="true" class="cs-rail">
+    <mat-nav-list>
+      @for (item of navItems; track item.path) {
+        <a
+          mat-list-item
+          [routerLink]="item.path"
+          routerLinkActive="cs-rail__item--active"
+          [matTooltip]="collapsed() ? item.label : ''"
+          matTooltipPosition="right"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="cs-content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,12 @@
+<div class="cs-empty-state">
+  <span class="cs-empty-state__icon">
+    <mat-icon aria-hidden="true">{{ icon() }}</mat-icon>
+  </span>
+  <p class="cs-empty-state__heading">{{ heading() }}</p>
+  @if (message()) {
+    <p class="cs-empty-state__message">{{ message() }}</p>
+  }
+  <div class="cs-empty-state__action">
+    <ng-content />
+  </div>
+</div>

@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.cs-confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-confirm-dialog__message {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-confirm-dialog__impacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px;
+  list-style: none;
+  border-radius: var(--cs-radius-md);
+  background-color: var(--mat-sys-surface-container-high);
+}
+
+.cs-confirm-dialog__impact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cs-confirm-dialog__impact-label {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+}
+
+.cs-confirm-dialog__impact-detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  text-align: right;
+}
+
+.cs-confirm-dialog__acknowledgement {
+  align-self: flex-start;
+}
+
+.cs-confirm-dialog__confirm--danger {
+  --mat-button-filled-container-color: var(--mat-sys-error);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-error);
+  --mat-button-filled-state-layer-color: var(--mat-sys-on-error);
+}

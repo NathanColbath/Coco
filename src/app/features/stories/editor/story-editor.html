@@ -1,0 +1,350 @@
+@if (loading()) {
+  <div class="cs-page"><p class="cs-muted">Loading story…</p></div>
+} @else if (story(); as story) {
+  <div class="cs-page cs-page--wide">
+    <cs-page-header [heading]="story.title" [subtitle]="words() + ' words · ' + path().length + ' passages'">
+      <div pageActions class="cs-actions">
+        <a matButton="outlined" [routerLink]="['/stories', story.id, 'lorebook']">
+          <mat-icon>menu_book</mat-icon>
+          Lorebook
+        </a>
+        <a matButton="outlined" routerLink="/comics">
+          <mat-icon>auto_stories</mat-icon>
+          Adapt to comic
+        </a>
+        <button matButton="outlined" type="button" (click)="previewContext()" [disabled]="busy()">
+          <mat-icon>visibility</mat-icon>
+          Preview context
+        </button>
+      </div>
+    </cs-page-header>
+
+    <cs-novelai-notice />
+
+    @if (busy() && !streaming()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (error()) {
+      <p class="cs-banner cs-banner--error">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        {{ error() }}
+      </p>
+    }
+
+    @if (notice() && !error()) {
+      <p class="cs-banner cs-banner--ok">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        {{ notice() }}
+      </p>
+    }
+
+    <div class="cs-editor">
+      <div class="cs-editor__main">
+        <cs-section-card>
+          <div class="cs-prose">
+            @for (block of path(); track block.id) {
+              <article class="cs-block cs-block--{{ block.origin }}">
+                <span class="cs-block__badge">
+                  {{ block.origin === 'Ai' ? 'AI' : 'You' }}
+                </span>
+
+                @if (editingBlockId() === block.id) {
+                  <textarea
+                    class="cs-block__editor"
+                    rows="6"
+                    [value]="editText()"
+                    (input)="editText.set($any($event.target).value)"
+                  ></textarea>
+                  <div class="cs-block__actions">
+                    <button matButton="filled" type="button" (click)="saveEdit()">Save</button>
+                    <button matButton="text" type="button" (click)="cancelEdit()">Cancel</button>
+                    <span class="cs-muted">
+                      Saving moves the cursor here; later passages become a variant.
+                    </span>
+                  </div>
+                } @else {
+                  <p class="cs-block__text" [class.cs-block__text--break]="block.kind === 'SceneBreak'">
+                    {{ block.text }}
+                  </p>
+                  <div class="cs-block__actions cs-block__actions--hover">
+                    @if (block.origin === 'User') {
+                      <button
+                        matIconButton
+                        type="button"
+                        matTooltip="Edit this passage"
+                        (click)="startEdit(block.id, block.text)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    } @else {
+                      <button
+                        matIconButton
+                        type="button"
+                        matTooltip="Generate a different version from here"
+                        (click)="retry()"
+                      >
+                        <mat-icon>refresh</mat-icon>
+                      </button>
+                    }
+                    <span class="cs-block__tokens">{{ block.tokenCount }}t</span>
+                  </div>
+                }
+              </article>
+            } @empty {
+              <cs-empty-state
+                icon="edit_note"
+                heading="Nothing written yet"
+                message="Type an opening below, or press Generate and let NovelAI start the story."
+              />
+            }
+
+            @if (streaming()) {
+              <article class="cs-block cs-block--Ai cs-block--streaming">
+                <span class="cs-block__badge">AI</span>
+                <p class="cs-block__text">
+                  {{ streamText() || '…' }}<span class="cs-caret"></span>
+                </p>
+              </article>
+            }
+          </div>
+
+          <div class="cs-composer">
+            <mat-form-field appearance="outline" class="cs-composer__field">
+              <mat-label>Write the next passage</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [value]="draft()"
+                (input)="draft.set($any($event.target).value)"
+                (keydown.control.enter)="appendDraft()"
+                (keydown.meta.enter)="appendDraft()"
+              ></textarea>
+              <mat-hint>Ctrl/⌘ + Enter to add</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="cs-composer__field">
+              <mat-label>Steer the next generation (optional)</mat-label>
+              <input
+                matInput
+                [value]="instruction()"
+                (input)="instruction.set($any($event.target).value)"
+                placeholder="e.g. End on an unanswered question"
+              />
+            </mat-form-field>
+
+            <div class="cs-composer__actions">
+              <button
+                matButton="filled"
+                type="button"
+                (click)="generate()"
+                [disabled]="streaming() || busy()"
+              >
+                <mat-icon>auto_awesome</mat-icon>
+                Generate
+              </button>
+              <button matButton="outlined" type="button" (click)="appendDraft()" [disabled]="busy()">
+                <mat-icon>add</mat-icon>
+                Add passage
+              </button>
+              <button matButton="text" type="button" (click)="addSceneBreak()" [disabled]="busy()">
+                <mat-icon>horizontal_rule</mat-icon>
+                Scene break
+              </button>
+              <span class="cs-spacer"></span>
+              <button
+                matButton="text"
+                type="button"
+                (click)="undo()"
+                [disabled]="busy() || path().length === 0"
+                matTooltip="Step the cursor back one passage"
+              >
+                <mat-icon>undo</mat-icon>
+                Undo
+              </button>
+              <button
+                matButton="text"
+                type="button"
+                (click)="retry()"
+                [disabled]="busy() || streaming()"
+                matTooltip="Discard the last AI passage and generate a new one"
+              >
+                <mat-icon>refresh</mat-icon>
+                Retry
+              </button>
+            </div>
+          </div>
+        </cs-section-card>
+      </div>
+
+      <aside class="cs-editor__rail">
+        <mat-tab-group class="cs-rail-tabs">
+          <mat-tab label="Context">
+            <div class="cs-rail-panel">
+              <p class="cs-muted">
+                Exactly what a generation would send, assembled deterministically on the server.
+              </p>
+              <cs-context-trace [trace]="trace()" />
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Settings">
+            <div class="cs-rail-panel">
+              <form [formGroup]="settingsForm" class="cs-settings">
+                <mat-form-field appearance="outline">
+                  <mat-label>Title</mat-label>
+                  <input matInput formControlName="title" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Synopsis</mat-label>
+                  <textarea matInput rows="3" formControlName="synopsis"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Genre</mat-label>
+                  <input matInput formControlName="genre" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Tags</mat-label>
+                  <input matInput formControlName="tags" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Text model</mat-label>
+                  <mat-select formControlName="textModelId">
+                    <mat-option value="">Account default</mat-option>
+                    @for (model of textModels(); track model.id) {
+                      <mat-option [value]="model.id">{{ model.displayName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>System prompt</mat-label>
+                  <textarea matInput rows="3" formControlName="systemPrompt"></textarea>
+                  <mat-hint>Leave empty to use NovelAI's default.</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Memory</mat-label>
+                  <textarea matInput rows="4" formControlName="memory"></textarea>
+                  <mat-hint>Always present. The ATTG line is added above this.</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Author's note</mat-label>
+                  <textarea matInput rows="2" formControlName="authorNote"></textarea>
+                  <mat-hint>Short and strongly weighted.</mat-hint>
+                </mat-form-field>
+
+                <div class="cs-settings__row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Note depth</mat-label>
+                    <input matInput type="number" min="1" max="30" formControlName="authorNoteDepth" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Temperature</mat-label>
+                    <input matInput type="number" step="0.05" min="0.1" max="2" formControlName="temperature" />
+                  </mat-form-field>
+                </div>
+
+                <div class="cs-settings__row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Max tokens</mat-label>
+                    <input matInput type="number" min="1" max="2048" formControlName="maxTokens" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Top P</mat-label>
+                    <input matInput type="number" step="0.05" min="0" max="1" formControlName="topP" />
+                  </mat-form-field>
+                </div>
+
+                <button matButton="filled" type="button" (click)="saveSettings()" [disabled]="busy()">
+                  Save settings
+                </button>
+              </form>
+            </div>
+          </mat-tab>
+
+          <mat-tab [label]="'History (' + generations().length + ')'">
+            <div class="cs-rail-panel">
+              @if (generations().length === 0) {
+                <p class="cs-muted">No generations yet.</p>
+              } @else {
+                <ol class="cs-history">
+                  @for (generation of generations(); track generation.id) {
+                    <li class="cs-history__item">
+                      <div class="cs-history__head">
+                        <cs-status-chip
+                          [label]="generation.status"
+                          [tone]="
+                            generation.status === 'Succeeded'
+                              ? 'success'
+                              : generation.status === 'Failed'
+                                ? 'danger'
+                                : 'neutral'
+                          "
+                        />
+                        <span class="cs-muted">{{ generation.modelId }}</span>
+                        <span class="cs-muted">{{ generation.durationMs }}ms</span>
+                      </div>
+                      @if (generation.error) {
+                        <p class="cs-history__error">{{ generation.error }}</p>
+                      }
+                      <div class="cs-history__meta">
+                        <span>{{ generation.promptTokens }}t in</span>
+                        <span>{{ generation.outputTokens }}t out</span>
+                        <span>{{ generation.createdAt | date: 'shortTime' }}</span>
+                      </div>
+                      @if (generation.trace) {
+                        <details>
+                          <summary>Context sent</summary>
+                          <cs-context-trace [trace]="generation.trace" />
+                        </details>
+                      }
+                    </li>
+                  }
+                </ol>
+              }
+            </div>
+          </mat-tab>
+
+          <mat-tab [label]="'Variants (' + variants().length + ')'">
+            <div class="cs-rail-panel">
+              @if (variants().length === 0) {
+                <p class="cs-muted">
+                  Retried passages and edited drafts appear here so nothing is ever lost.
+                </p>
+              } @else {
+                <p class="cs-muted">
+                  {{ abandonedCount() }} passages are off the active branch. Switching to one
+                  makes it the current path.
+                </p>
+                <ol class="cs-history">
+                  @for (variant of variants(); track variant.id) {
+                    <li class="cs-history__item">
+                      <div class="cs-history__head">
+                        <cs-status-chip
+                          [label]="variant.origin === 'Ai' ? 'AI' : 'You'"
+                          tone="info"
+                        />
+                        <span class="cs-muted">{{ variant.createdAt | date: 'short' }}</span>
+                      </div>
+                      <p class="cs-variant__text">{{ variant.text }}</p>
+                      <button matButton="outlined" type="button" (click)="switchTo(variant.id)">
+                        <mat-icon>fork_right</mat-icon>
+                        Switch to this
+                      </button>
+                    </li>
+                  }
+                </ol>
+              }
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </aside>
+    </div>
+  </div>
+}

@@ -1,0 +1,27 @@
+// App-level design tokens shared by every feature. Material's own system
+// variables (--mat-sys-*) cover color and type; these cover layout.
+:root {
+  --cs-rail-width: 264px;
+  --cs-rail-width-compact: 72px;
+  --cs-toolbar-height: 56px;
+  --cs-content-max: 1600px;
+  --cs-gutter: 24px;
+  --cs-gutter-tight: 12px;
+
+  --cs-radius-sm: 6px;
+  --cs-radius-md: 12px;
+  --cs-radius-lg: 20px;
+
+  --cs-z-canvas: 1;
+  --cs-z-overlay: 10;
+  --cs-z-drawer: 100;
+  --cs-z-toast: 1000;
+
+  --cs-transition-fast: 120ms ease-out;
+  --cs-transition-base: 200ms ease-out;
+
+  // Warning tone, used by the NovelAI subscription notice. Material's system
+  // variables have no "warning" role, so it is defined here.
+  --cs-warning-container: light-dark(#fff3cd, #4a3c12);
+  --cs-on-warning-container: light-dark(#5c4708, #f5e6b8);
+}

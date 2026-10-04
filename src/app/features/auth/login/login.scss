@@ -1,0 +1,99 @@
+.cs-login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--cs-gutter);
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      var(--mat-sys-primary-container),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 0%,
+      var(--mat-sys-tertiary-container),
+      transparent 40%
+    ),
+    var(--mat-sys-surface);
+}
+
+.cs-login__card {
+  width: min(440px, 100%);
+  overflow: hidden;
+}
+
+.cs-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 16px;
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+    width: 32px;
+    height: 32px;
+    font-size: 32px;
+  }
+
+  h1 {
+    margin: 0;
+    font: var(--mat-sys-headline-small);
+  }
+
+  p {
+    margin: 2px 0 0;
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.cs-login__modes {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background-color: var(--mat-sys-surface-container-high);
+
+  button {
+    flex: 1;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-large);
+    cursor: pointer;
+    transition: background-color var(--cs-transition-fast);
+  }
+}
+
+.cs-login__mode--active {
+  background-color: var(--mat-sys-surface) !important;
+  color: var(--mat-sys-on-surface) !important;
+  box-shadow: var(--mat-sys-level1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-login__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--cs-radius-sm);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-small);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

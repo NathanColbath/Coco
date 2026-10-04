@@ -1,0 +1,103 @@
+<div class="cs-page">
+  <cs-page-header
+    heading="Dashboard"
+    subtitle="Foundation checks: the API, the database, and the NovelAI model registry."
+  >
+    <button pageActions matButton="outlined" type="button" (click)="reload()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </cs-page-header>
+
+  <div class="cs-split">
+    <cs-section-card heading="API" icon="dns">
+      @if (health.isLoading()) {
+        <p class="cs-muted">Checking…</p>
+      } @else if (health.error()) {
+        <div class="cs-status-row">
+          <cs-status-chip label="Offline" tone="danger" icon="error" />
+        </div>
+        <p class="cs-muted">
+          Start the backend with <code>dotnet watch run</code> in the <code>api</code> folder.
+        </p>
+      } @else {
+        <div class="cs-status-row">
+          <cs-status-chip label="Connected" tone="success" icon="check_circle" />
+        </div>
+        <dl class="cs-facts">
+          <dt>Service</dt>
+          <dd>{{ health.value()?.service }}</dd>
+          <dt>Checked</dt>
+          <dd>{{ health.value()?.time | date: 'mediumTime' }}</dd>
+        </dl>
+      }
+    </cs-section-card>
+
+    <cs-section-card heading="Text models" icon="edit_note">
+      @if (models.isLoading()) {
+        <p class="cs-muted">Loading registry…</p>
+      } @else if (models.error()) {
+        <cs-empty-state
+          icon="cloud_off"
+          heading="Registry unavailable"
+          [message]="models.error()?.message ?? ''"
+        />
+      } @else if (textModels().length === 0) {
+        <cs-empty-state icon="edit_note" heading="No text models registered" />
+      } @else {
+        <ul class="cs-model-list">
+          @for (model of textModels(); track model.id) {
+            <li class="cs-model">
+              <div class="cs-model__name">
+                <strong>{{ model.displayName }}</strong>
+                <span class="cs-muted">{{ model.family }}</span>
+              </div>
+              <div class="cs-model__meta">
+                @if (model.contextTokens) {
+                  <cs-status-chip [label]="tokenLabel(model.contextTokens) + ' ctx'" />
+                }
+                <cs-status-chip [label]="model.minTier" tone="info" />
+                @if (model.isDefault) {
+                  <cs-status-chip label="Default" tone="success" icon="star" />
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </cs-section-card>
+  </div>
+
+  <cs-section-card heading="Image models" icon="image">
+    @if (imageModels().length === 0 && !models.isLoading()) {
+      <cs-empty-state icon="image" heading="No image models registered" />
+    } @else {
+      <ul class="cs-model-list">
+        @for (model of imageModels(); track model.id) {
+          <li class="cs-model">
+            <div class="cs-model__name">
+              <strong>{{ model.displayName }}</strong>
+              <span class="cs-muted">{{ model.family }}</span>
+            </div>
+            <div class="cs-model__meta">
+              @if (model.capabilities.characterPrompts) {
+                <cs-status-chip
+                  [label]="'up to ' + model.capabilities.maxCharacters + ' chars'"
+                  tone="info"
+                  icon="groups"
+                />
+              }
+              @if (model.capabilities.preciseReference) {
+                <cs-status-chip label="Precise reference" icon="person_search" />
+              }
+              @if (model.capabilities.vibeTransfer) {
+                <cs-status-chip label="Vibe transfer" icon="auto_awesome" />
+              }
+              <cs-status-chip [label]="model.minTier" tone="warning" />
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </cs-section-card>
+</div>

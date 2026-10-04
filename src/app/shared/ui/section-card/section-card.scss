@@ -1,0 +1,27 @@
+.cs-section-card {
+  display: block;
+}
+
+.cs-section-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary-container);
+  border-radius: var(--cs-radius-sm);
+}
+
+.cs-section-card__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.cs-section-card--dense mat-card-content {
+  padding-block: 8px;
+}

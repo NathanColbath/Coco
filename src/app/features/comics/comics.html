@@ -1,0 +1,113 @@
+<div class="cs-page">
+  <cs-page-header
+    heading="Comics"
+    subtitle="Adapt a story into a manga: panels, prompts, art and a readable book."
+  >
+    <button pageActions matButton="filled" type="button" (click)="creating.set(!creating())">
+      <mat-icon>{{ creating() ? 'close' : 'add' }}</mat-icon>
+      {{ creating() ? 'Cancel' : 'New comic' }}
+    </button>
+  </cs-page-header>
+
+  @if (error() && !creating()) {
+    <p class="cs-banner cs-banner--error">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      {{ error() }}
+    </p>
+  }
+
+  @if (notice() && !error()) {
+    <p class="cs-banner cs-banner--ok">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      {{ notice() }}
+    </p>
+  }
+
+  @if (creating()) {
+    <cs-section-card heading="Adapt a story" icon="auto_stories">
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+
+      <form [formGroup]="form" class="cs-create" (ngSubmit)="create()">
+        <mat-form-field appearance="outline">
+          <mat-label>Story</mat-label>
+          <mat-select formControlName="storyId">
+            @for (story of stories.value() ?? []; track story.id) {
+              <mat-option [value]="story.id">
+                {{ story.title }} · {{ story.wordCount }} words
+              </mat-option>
+            }
+          </mat-select>
+          <mat-hint>Write the story first, then adapt it here.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Comic title (optional)</mat-label>
+          <input matInput formControlName="title" placeholder="Defaults to the story title" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Premise (optional)</mat-label>
+          <textarea matInput rows="2" formControlName="premise"></textarea>
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="cs-error">{{ error() }}</p>
+        }
+
+        <button matButton="filled" type="submit" [disabled]="busy()">Create comic</button>
+      </form>
+    </cs-section-card>
+  }
+
+  @if (comics.isLoading()) {
+    <p class="cs-muted">Loading comics…</p>
+  } @else if ((comics.value() ?? []).length === 0) {
+    <cs-empty-state
+      icon="auto_stories"
+      heading="No comics yet"
+      message="Create one from a story to curate it into pages and panels."
+    />
+  } @else {
+    <div class="cs-grid">
+      @for (comic of comics.value(); track comic.id) {
+        <div class="cs-card">
+          <a class="cs-card__link" [routerLink]="['/comics', comic.id]">
+            <div class="cs-card__head">
+              <h3>{{ comic.title }}</h3>
+              <cs-status-chip
+                [label]="comic.status"
+                [tone]="comic.status === 'Complete' ? 'success' : comic.status === 'Planned' ? 'info' : 'neutral'"
+              />
+            </div>
+            <p class="cs-card__source">from “{{ comic.storyTitle }}”</p>
+            <div class="cs-card__meta">
+              <span>{{ comic.pageCount }} pages</span>
+              <span>{{ comic.generatedPageCount }} drawn</span>
+              <span>{{ comic.updatedAt | date: 'short' }}</span>
+            </div>
+          </a>
+
+          <button
+            matIconButton
+            type="button"
+            class="cs-card__menu"
+            [matMenuTriggerFor]="comicMenu"
+            [attr.aria-label]="'Actions for ' + comic.title"
+            [disabled]="removing() === comic.id"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #comicMenu="matMenu">
+            <button mat-menu-item type="button" (click)="remove(comic)">
+              <mat-icon>delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+        </div>
+      }
+    </div>
+  }
+</div>

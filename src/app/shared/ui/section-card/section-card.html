@@ -1,0 +1,17 @@
+<mat-card appearance="outlined" class="cs-section-card" [class.cs-section-card--dense]="dense()">
+  @if (heading() || icon()) {
+    <mat-card-header>
+      @if (icon()) {
+        <mat-icon mat-card-avatar class="cs-section-card__icon">{{ icon() }}</mat-icon>
+      }
+      <mat-card-title>{{ heading() }}</mat-card-title>
+      <span class="cs-section-card__actions">
+        <ng-content select="[cardActions]" />
+      </span>
+    </mat-card-header>
+  }
+
+  <mat-card-content>
+    <ng-content />
+  </mat-card-content>
+</mat-card>

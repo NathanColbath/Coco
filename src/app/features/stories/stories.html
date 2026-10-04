@@ -1,0 +1,125 @@
+<div class="cs-page">
+  <cs-page-header
+    heading="Stories"
+    subtitle="NovelAI-driven writing with lorebook, memory and a context you can inspect."
+  >
+    <button pageActions matButton="filled" type="button" (click)="toggleCreate()">
+      <mat-icon>{{ creating() ? 'close' : 'add' }}</mat-icon>
+      {{ creating() ? 'Cancel' : 'New story' }}
+    </button>
+  </cs-page-header>
+
+  @if (error() && !creating()) {
+    <p class="cs-banner cs-banner--error">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      {{ error() }}
+    </p>
+  }
+
+  @if (notice() && !error()) {
+    <p class="cs-banner cs-banner--ok">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      {{ notice() }}
+    </p>
+  }
+
+  @if (creating()) {
+    <cs-section-card heading="New story" icon="auto_stories">
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+
+      <form [formGroup]="form" class="cs-create" (ngSubmit)="create()">
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" />
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <mat-error>A title is required.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Synopsis</mat-label>
+          <textarea matInput rows="3" formControlName="synopsis"></textarea>
+          <mat-hint>Becomes the back-cover blurb in the context.</mat-hint>
+        </mat-form-field>
+
+        <div class="cs-create__row">
+          <mat-form-field appearance="outline">
+            <mat-label>Genre</mat-label>
+            <input matInput formControlName="genre" placeholder="Fantasy" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Tags</mat-label>
+            <input matInput formControlName="tags" placeholder="steampunk, mystery" />
+            <mat-hint>Comma separated. Feeds the ATTG line.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (error()) {
+          <p class="cs-error">{{ error() }}</p>
+        }
+
+        <button matButton="filled" type="submit" [disabled]="busy()">Create story</button>
+      </form>
+    </cs-section-card>
+  }
+
+  @if (stories.isLoading()) {
+    <p class="cs-muted">Loading stories…</p>
+  } @else if (stories.error()) {
+    <cs-empty-state
+      icon="cloud_off"
+      heading="Could not load stories"
+      [message]="stories.error()?.message ?? ''"
+    />
+  } @else if ((stories.value() ?? []).length === 0) {
+    <cs-empty-state
+      icon="menu_book"
+      heading="No stories yet"
+      message="Create one to start writing. The story bible and comic adaptation build on what you write here."
+    />
+  } @else {
+    <div class="cs-grid">
+      @for (story of stories.value(); track story.id) {
+        <div class="cs-card">
+          <a class="cs-card__link" [routerLink]="['/stories', story.id]">
+            <div class="cs-card__head">
+              <h3>{{ story.title }}</h3>
+              @if (story.genre) {
+                <cs-status-chip [label]="story.genre" tone="info" />
+              }
+            </div>
+            @if (story.tags) {
+              <p class="cs-card__tags">{{ story.tags }}</p>
+            }
+            <div class="cs-card__meta">
+              <span>{{ story.wordCount | number }} words</span>
+              <span>{{ story.blockCount }} blocks</span>
+              <span>updated {{ story.updatedAt | date: 'short' }}</span>
+            </div>
+          </a>
+
+          <button
+            matIconButton
+            type="button"
+            class="cs-card__menu"
+            [matMenuTriggerFor]="storyMenu"
+            [attr.aria-label]="'Actions for ' + story.title"
+            [disabled]="removing() === story.id"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #storyMenu="matMenu">
+            <button mat-menu-item type="button" (click)="remove(story)">
+              <mat-icon>delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+        </div>
+      }
+    </div>
+  }
+</div>

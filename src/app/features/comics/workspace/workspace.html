@@ -1,0 +1,308 @@
+@if (loading()) {
+  <div class="cs-page"><p class="cs-muted">Loading comic…</p></div>
+} @else if (comic(); as comic) {
+  <div class="cs-page cs-page--wide">
+    <cs-page-header
+      [heading]="comic.title"
+      [subtitle]="progress().drawn + ' of ' + progress().total + ' pages drawn'"
+    >
+      <div pageActions class="cs-actions">
+        <a matButton="outlined" [routerLink]="['/stories', comic.storyId]">
+          <mat-icon>menu_book</mat-icon>
+          Story
+        </a>
+        <a matButton="outlined" [routerLink]="['/comics', comic.id, 'read']">
+          <mat-icon>chrome_reader_mode</mat-icon>
+          Read
+        </a>
+        <button matButton="outlined" type="button" (click)="curate()" [disabled]="busy()">
+          <mat-icon>auto_fix_high</mat-icon>
+          {{ comic.pages.length > 0 ? 'Re-script' : 'Script pages' }}
+        </button>
+        <button
+          matButton="filled"
+          type="button"
+          (click)="drawAll()"
+          [disabled]="busy() || comic.pages.length === 0"
+        >
+          <mat-icon>brush</mat-icon>
+          Draw remaining
+        </button>
+      </div>
+    </cs-page-header>
+
+    <cs-novelai-notice />
+
+    @if (curation(); as state) {
+      <div class="cs-curation">
+        <mat-progress-bar mode="determinate" [value]="state.percent" />
+        <p class="cs-muted">{{ state.message }}</p>
+      </div>
+    }
+
+    @if (busy() && !curation()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (error()) {
+      <p class="cs-banner cs-banner--error">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        {{ error() }}
+      </p>
+    }
+
+    @if (notice() && !error()) {
+      <p class="cs-banner cs-banner--ok">{{ notice() }}</p>
+    }
+
+    <div class="cs-settings">
+      <mat-form-field appearance="outline">
+        <mat-label>Content rating</mat-label>
+        <mat-select [ngModel]="comic.rating" (ngModelChange)="setRating($event)">
+          @for (option of ratings; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Applied to every page prompt. Set it before drawing.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    @if (pages().length === 0) {
+      <cs-section-card heading="No pages yet" icon="auto_fix_high">
+        <p class="cs-muted">
+          Scripting reads the story, discovers the cast, then writes each page: a prose
+          script that doubles as the prompt, a continuity ledger, a panel plan for the
+          single drawn image, and the words in every bubble. It uses NovelAI's text
+          model, which is free on a subscription — nothing is drawn yet.
+        </p>
+      </cs-section-card>
+    } @else {
+      <div class="cs-pages">
+        @for (page of pages(); track page.id) {
+          <article class="cs-page-card">
+            <header class="cs-page-card__head">
+              <h2>Page {{ pageNumber(page.index) }}</h2>
+              @if (page.sceneTitle) {
+                <span class="cs-scene">{{ page.sceneTitle }}</span>
+              }
+              @if (environmentName(page); as environment) {
+                <span class="cs-muted">{{ environment }}</span>
+              }
+              <cs-status-chip
+                [label]="page.status"
+                [tone]="page.status === 'Generated' ? 'success' : 'neutral'"
+              />
+              @let model = modelBadge(page);
+              <span class="cs-model" [matTooltip]="model.reason">
+                <cs-status-chip [label]="model.label" [tone]="model.tone" />
+              </span>
+              <span class="cs-spacer"></span>
+              @if (page.targetWidth && page.targetHeight) {
+                <span class="cs-muted">{{ page.targetWidth }}×{{ page.targetHeight }}</span>
+              }
+              @if (page.seed !== null && page.seed !== undefined) {
+                <span class="cs-muted">seed {{ page.seed }}</span>
+              }
+            </header>
+
+            <div class="cs-page-card__body">
+              <div class="cs-page-card__art">
+                @if (isDrawing(page.id) || page.status === 'Generating') {
+                  <div class="cs-placeholder">
+                    <mat-icon class="cs-spin">progress_activity</mat-icon>
+                  </div>
+                } @else if (page.pageImageId; as artId) {
+                  <img [csAuthedImage]="artId" [alt]="'Page ' + pageNumber(page.index)" />
+                } @else {
+                  <div class="cs-placeholder"><mat-icon>image</mat-icon></div>
+                }
+
+                <div class="cs-page-card__actions">
+                  <button
+                    matButton="filled"
+                    type="button"
+                    (click)="drawPage(page.id)"
+                    [disabled]="busy() || isDrawing(page.id)"
+                  >
+                    <mat-icon>brush</mat-icon>
+                    {{ page.pageImageId ? 'Redraw page' : 'Draw page' }}
+                  </button>
+                  <button matButton="outlined" type="button" (click)="open(page)">
+                    <mat-icon>edit</mat-icon>
+                    Edit script
+                  </button>
+                </div>
+              </div>
+
+              <div class="cs-page-card__text">
+                @if (page.script) {
+                  <p class="cs-page-card__script">{{ page.script }}</p>
+                }
+
+                @let plan = panelPlan(page);
+                @if (plan.length > 0) {
+                  <section class="cs-plan">
+                    <h3 class="cs-plan__title">
+                      <mat-icon aria-hidden="true">grid_view</mat-icon>
+                      Panel plan — {{ plan.length }} {{ plan.length === 1 ? 'panel' : 'panels' }}
+                    </h3>
+                    <ol class="cs-plan__list">
+                      @for (panel of plan; track $index) {
+                        <li class="cs-plan__panel">
+                          <div class="cs-plan__head">
+                            <span class="cs-plan__order">{{ panel.order ?? $index + 1 }}</span>
+                            @if (panel.framing) {
+                              <cs-status-chip [label]="panel.framing ?? ''" />
+                            }
+                            @if (panel.action) {
+                              <span class="cs-plan__action">{{ panel.action }}</span>
+                            }
+                          </div>
+                          @if ((panel.cast ?? []).length > 0) {
+                            <ul class="cs-plan__cast">
+                              @for (member of panel.cast ?? []; track $index) {
+                                <li>{{ castLine(member) }}</li>
+                              }
+                            </ul>
+                          }
+                          @if ((panel.props ?? []).length > 0) {
+                            <p class="cs-plan__meta">
+                              <span class="cs-plan__label">Props</span>
+                              {{ (panel.props ?? []).join(', ') }}
+                            </p>
+                          }
+                          @if (panel.background) {
+                            <p class="cs-plan__meta">
+                              <span class="cs-plan__label">Background</span>
+                              {{ panel.background }}
+                            </p>
+                          }
+                        </li>
+                      }
+                    </ol>
+                  </section>
+                }
+
+                @if ((page.dialogue ?? []).length > 0) {
+                  <ul class="cs-lines">
+                    @for (line of page.dialogue; track line.id) {
+                      <li>
+                        <span class="cs-line__kind">{{ line.kind }}</span>
+                        <strong>{{ speakerName(line) }}</strong>
+                        <span class="cs-line__text">{{ line.text }}</span>
+                        @if (line.position) {
+                          <span class="cs-muted">{{ line.position }}</span>
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (page.continuity) {
+                  <details class="cs-ledger">
+                    <summary>Continuity ledger</summary>
+                    @let ledger = ledgerSections(page);
+                    @if (ledger.length > 0) {
+                      <div class="cs-ledger__body">
+                        @for (section of ledger; track $index) {
+                          <p class="cs-ledger__row">
+                            @if (section.heading) {
+                              <span class="cs-ledger__heading">{{ section.heading }}</span>
+                            }
+                            <span>{{ section.text }}</span>
+                          </p>
+                        }
+                      </div>
+                    } @else {
+                      <p>{{ page.continuity }}</p>
+                    }
+                  </details>
+                }
+
+                @if (page.positivePrompt || page.negativePrompt) {
+                  <details class="cs-ledger">
+                    <summary>Composed prompt</summary>
+                    @if (page.positivePrompt) {
+                      <p class="cs-prompt__label">Positive</p>
+                      <pre class="cs-prompt">{{ page.positivePrompt }}</pre>
+                    }
+                    @if (page.negativePrompt) {
+                      <p class="cs-prompt__label">Negative</p>
+                      <pre class="cs-prompt cs-prompt--negative">{{ page.negativePrompt }}</pre>
+                    }
+                  </details>
+                }
+              </div>
+            </div>
+
+            @if (openPageId() === page.id && draft) {
+              <div class="cs-editor">
+                <mat-form-field appearance="outline">
+                  <mat-label>Scene</mat-label>
+                  <input matInput [(ngModel)]="draft.sceneTitle" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Page script — this is the prompt</mat-label>
+                  <textarea matInput rows="6" [(ngModel)]="draft.script"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Continuity carried into the next page</mat-label>
+                  <textarea matInput rows="3" [(ngModel)]="draft.continuity"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="cs-editor__model">
+                  <mat-label>Model override</mat-label>
+                  <mat-select [(ngModel)]="draft.modelOverride">
+                    @for (option of modelOverrides; track option.label) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-hint>
+                    Automatic picks V5 when the page has dialogue, otherwise V4.5.
+                  </mat-hint>
+                </mat-form-field>
+
+                <h3 class="cs-editor__heading">
+                  Lettering — drawn into the image, kept under 60 characters
+                  <button matIconButton type="button" (click)="addLine()" aria-label="Add line">
+                    <mat-icon>add_comment</mat-icon>
+                  </button>
+                </h3>
+
+                @for (line of draft.dialogue; track $index) {
+                  <div class="cs-line-row">
+                    <mat-select class="cs-line-row__kind" [(ngModel)]="line.kind">
+                      @for (kind of kinds; track kind) {
+                        <mat-option [value]="kind">{{ kind }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-select class="cs-line-row__speaker" [(ngModel)]="line.speakerCharacterId">
+                      <mat-option [value]="null">—</mat-option>
+                      @for (character of comic.cast; track character.id) {
+                        <mat-option [value]="character.id">{{ character.name }}</mat-option>
+                      }
+                    </mat-select>
+                    <input class="cs-input" placeholder="text" [(ngModel)]="line.text" />
+                    <input class="cs-input cs-input--position" placeholder="position" [(ngModel)]="line.position" />
+                    <button matIconButton type="button" (click)="removeLine($index)" aria-label="Remove">
+                      <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+                  </div>
+                }
+
+                <div class="cs-editor__actions">
+                  <button matButton="filled" type="button" (click)="savePage(page.id)" [disabled]="busy()">
+                    Save and recompose
+                  </button>
+                  <button matButton="text" type="button" (click)="close()">Close</button>
+                </div>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+  </div>
+}

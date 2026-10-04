@@ -2,21 +2,32 @@
   "name": "comic-studio",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "ng": "cross-env NG_BUILD_SASS_EMBEDDED=false ng",
+    "start": "cross-env NG_BUILD_SASS_EMBEDDED=false ng serve",
+    "build": "cross-env NG_BUILD_SASS_EMBEDDED=false ng build",
+    "watch": "cross-env NG_BUILD_SASS_EMBEDDED=false ng build --watch --configuration development",
+    "test": "cross-env NG_BUILD_SASS_EMBEDDED=false ng test",
+    "api:dev": "dotnet watch --project api run --launch-profile http",
+    "dev:stop": "./scripts/stop-dev.sh",
+    "api:types": "npx -y openapi-typescript@7.13.0 http://localhost:5240/openapi/v1.json -o src/app/core/api/schema.d.ts",
+    "hub:smoke": "node scripts/hub-smoke.mjs",
+    "test:api": "dotnet test api.Tests",
+    "db:update": "dotnet ef database update --project api",
+    "build:api": "cross-env NG_BUILD_SASS_EMBEDDED=false ng build --configuration production --output-path api/wwwroot"
   },
   "private": true,
   "packageManager": "npm@11.19.0",
   "dependencies": {
+    "@angular/cdk": "^22.2.1",
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
     "@angular/forms": "^22.2.0",
+    "@angular/material": "^22.2.1",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@microsoft/signalr": "^10.0.11",
+    "openapi-fetch": "^0.17.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -24,9 +35,12 @@
     "@angular/build": "^22.2.1",
     "@angular/cli": "^22.2.1",
     "@angular/compiler-cli": "^22.2.0",
+    "cross-env": "^10.1.0",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
+    "sass": "^1.105.1",
     "typescript": "~6.0.2",
+    "vite": "^8.0.0",
     "vitest": "^5.0.0"
   }
 }

@@ -1,0 +1,95 @@
+@if (loading()) {
+  <div class="cs-reader cs-reader--loading"><mat-progress-bar mode="indeterminate" /></div>
+} @else if (comic(); as comic) {
+  <div class="cs-reader" [class.cs-reader--rtl]="rightToLeft()">
+    <header class="cs-reader__bar">
+      <a matIconButton [routerLink]="['/comics', comic.id]" matTooltip="Back to the workspace">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+      <span class="cs-reader__title">{{ comic.title }}</span>
+      <span class="cs-reader__position">
+        @if (showCover()) {
+          cover
+        } @else {
+          {{ index() + 1 }} / {{ total() }}
+        }
+      </span>
+      <span class="cs-spacer"></span>
+      <button matIconButton type="button" (click)="toggleFit()" matTooltip="Fit width / height">
+        <mat-icon>{{ fit() === 'height' ? 'fit_screen' : 'fullscreen' }}</mat-icon>
+      </button>
+      @if (coverImage()) {
+        <button
+          matIconButton
+          type="button"
+          (click)="showCover.set(!showCover())"
+          matTooltip="Show or hide the cover"
+        >
+          <mat-icon>book</mat-icon>
+        </button>
+      }
+    </header>
+
+    <div class="cs-reader__stage" [class.cs-reader__stage--width]="fit() === 'width'">
+      @if (showCover() && coverImage()) {
+        <div
+          class="cs-reader__page"
+          [style.aspect-ratio]="comic.pageWidth + ' / ' + comic.pageHeight"
+          (click)="showCover.set(false)"
+        >
+          <img class="cs-reader__cover" [csAuthedImage]="coverImage()" alt="Cover" />
+        </div>
+      } @else if (page(); as current) {
+        <div
+          class="cs-reader__page"
+          [style.aspect-ratio]="comic.pageWidth + ' / ' + comic.pageHeight"
+        >
+          @if (pageImage(); as drawn) {
+            <img class="cs-reader__art" [csAuthedImage]="drawn" [alt]="'Page ' + (index() + 1)" />
+          } @else {
+            <div class="cs-reader__blank">
+              <span>Page {{ index() + 1 }} has not been drawn yet</span>
+              <small>{{ current.sceneTitle }}</small>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="cs-reader__empty">This comic has no pages yet. Curate it first.</p>
+      }
+    </div>
+
+    <footer class="cs-reader__nav">
+      <button
+        matButton="outlined"
+        type="button"
+        (click)="rightToLeft() ? next() : previous()"
+        [disabled]="rightToLeft() ? index() >= total() - 1 : index() === 0"
+      >
+        <mat-icon>{{ rightToLeft() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
+        {{ rightToLeft() ? 'Next' : 'Previous' }}
+      </button>
+
+      <div class="cs-reader__dots">
+        @for (item of comic.pages; track item.id; let i = $index) {
+          <button
+            type="button"
+            class="cs-dot"
+            [class.cs-dot--active]="i === index() && !showCover()"
+            [attr.aria-label]="'Go to page ' + (i + 1)"
+            (click)="showCover.set(false); index.set(i)"
+          ></button>
+        }
+      </div>
+
+      <button
+        matButton="outlined"
+        type="button"
+        (click)="rightToLeft() ? previous() : next()"
+        [disabled]="rightToLeft() ? index() === 0 : index() >= total() - 1"
+      >
+        {{ rightToLeft() ? 'Previous' : 'Next' }}
+        <mat-icon>{{ rightToLeft() ? 'arrow_back' : 'arrow_forward' }}</mat-icon>
+      </button>
+    </footer>
+  </div>
+}

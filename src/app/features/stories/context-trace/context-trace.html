@@ -1,0 +1,55 @@
+@if (trace(); as trace) {
+  <div class="cs-trace">
+    <div class="cs-trace__budget">
+      <div class="cs-trace__bar">
+        <span class="cs-trace__fill" [style.width.%]="usedPercent()"></span>
+      </div>
+      <div class="cs-trace__figures">
+        <span><strong>{{ trace.usedTokens | number }}</strong> used</span>
+        <span>{{ trace.availableTokens | number }} available</span>
+        <span>{{ trace.contextWindowTokens | number }} window</span>
+      </div>
+    </div>
+
+    <div class="cs-trace__meta">
+      <cs-status-chip [label]="trace.modelId" tone="info" icon="memory" />
+      <cs-status-chip [label]="trace.transport" />
+      @if (trace.trimmed) {
+        <cs-status-chip label="Trimmed to fit" tone="warning" icon="content_cut" />
+      }
+    </div>
+
+    @if (trace.warnings.length > 0) {
+      <ul class="cs-trace__warnings">
+        @for (warning of trace.warnings; track warning) {
+          <li>
+            <mat-icon aria-hidden="true">info</mat-icon>
+            {{ warning }}
+          </li>
+        }
+      </ul>
+    }
+
+    <ol class="cs-trace__segments">
+      @for (segment of trace.segments; track $index) {
+        <li class="cs-segment">
+          <details>
+            <summary>
+              <span class="cs-segment__kind cs-segment__kind--{{ segment.kind }}">
+                {{ segment.kind }}
+              </span>
+              <span class="cs-segment__name">{{ segment.name }}</span>
+              <span class="cs-segment__tokens">{{ segment.tokens | number }}t</span>
+            </summary>
+            @if (segment.note) {
+              <p class="cs-segment__note">{{ segment.note }}</p>
+            }
+            <pre class="cs-segment__text">{{ segment.text }}</pre>
+          </details>
+        </li>
+      }
+    </ol>
+  </div>
+} @else {
+  <p class="cs-trace__empty">Nothing assembled yet. Press “Preview context” to see what would be sent.</p>
+}

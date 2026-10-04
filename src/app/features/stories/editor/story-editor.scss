@@ -1,0 +1,270 @@
+.cs-page--wide {
+  max-width: none;
+}
+
+.cs-muted {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin: 0;
+}
+
+.cs-spacer {
+  flex: 1 1 auto;
+}
+
+.cs-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cs-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--cs-radius-sm);
+  font: var(--mat-sys-body-small);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.cs-banner--error {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.cs-banner--ok {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: var(--cs-gutter);
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .cs-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cs-editor__rail {
+  position: sticky;
+  top: var(--cs-gutter);
+}
+
+.cs-rail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 4px 4px;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+// --- Prose ---------------------------------------------------------------
+
+.cs-prose {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 240px;
+  max-height: 60vh;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.cs-block {
+  position: relative;
+  padding: 8px 12px 8px 40px;
+  border-radius: var(--cs-radius-sm);
+  border-left: 3px solid transparent;
+  transition: background-color var(--cs-transition-fast);
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-high);
+  }
+
+  &:hover .cs-block__actions--hover {
+    opacity: 1;
+  }
+}
+
+.cs-block--Ai {
+  border-left-color: var(--mat-sys-primary);
+}
+
+.cs-block--User {
+  border-left-color: var(--mat-sys-tertiary);
+}
+
+.cs-block--streaming {
+  background-color: var(--mat-sys-surface-container);
+}
+
+.cs-block__badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-block__text {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.cs-block__text--break {
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  letter-spacing: 0.3em;
+}
+
+.cs-block__editor {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  border-radius: var(--cs-radius-sm);
+  border: 1px solid var(--mat-sys-outline);
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  resize: vertical;
+}
+
+.cs-block__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cs-block__actions--hover {
+  opacity: 0;
+  transition: opacity var(--cs-transition-fast);
+}
+
+.cs-block__tokens {
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+  margin-left: auto;
+}
+
+.cs-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background-color: var(--mat-sys-primary);
+  animation: cs-blink 1s steps(2, start) infinite;
+}
+
+@keyframes cs-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+// --- Composer ------------------------------------------------------------
+
+.cs-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.cs-composer__field {
+  width: 100%;
+}
+
+.cs-composer__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// --- Rail ----------------------------------------------------------------
+
+.cs-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cs-settings__row {
+  display: flex;
+  gap: 12px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.cs-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-history__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--cs-radius-sm);
+}
+
+.cs-history__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cs-history__meta {
+  display: flex;
+  gap: 10px;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-history__error {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: var(--cs-radius-sm);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-small);
+}
+
+.cs-variant__text {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  max-height: 6.5em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}

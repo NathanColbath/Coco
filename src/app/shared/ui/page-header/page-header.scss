@@ -1,0 +1,34 @@
+:host {
+  display: block;
+}
+
+.cs-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cs-gutter);
+  flex-wrap: wrap;
+}
+
+.cs-page-header__heading {
+  margin: 0;
+  font: var(--mat-sys-headline-medium);
+  color: var(--mat-sys-on-surface);
+}
+
+.cs-page-header__subtitle {
+  margin: 4px 0 0;
+  max-width: 72ch;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cs-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:empty {
+    display: none;
+  }
+}

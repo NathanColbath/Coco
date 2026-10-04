@@ -1,1 +1,62 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+@use './styles/tokens';
+
+html {
+  height: 100%;
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$violet-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+// MatIcon infers its font set class from loaded fonts, which races with web
+// font loading. Pin it so icons render on first paint.
+.mat-icon {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.cs-page {
+  max-width: var(--cs-content-max);
+  margin: 0 auto;
+  padding: var(--cs-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cs-gutter);
+}
+
+.cs-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--cs-gutter);
+}
+
+@media (max-width: 1100px) {
+  .cs-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

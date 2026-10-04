@@ -1,0 +1,12 @@
+<header class="cs-page-header">
+  <div class="cs-page-header__text">
+    <h1 class="cs-page-header__heading">{{ heading() }}</h1>
+    @if (subtitle()) {
+      <p class="cs-page-header__subtitle">{{ subtitle() }}</p>
+    }
+  </div>
+
+  <div class="cs-page-header__actions">
+    <ng-content select="[pageActions]" />
+  </div>
+</header>
